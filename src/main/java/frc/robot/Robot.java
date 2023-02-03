@@ -8,6 +8,8 @@ import edu.wpi.first.wpilibj.PS4Controller;
 import edu.wpi.first.wpilibj.TimedRobot;
 import com.revrobotics.*;
 import frc.robot.Drive.*;
+import frc.robot.DriverControl.DriverControl;
+import frc.robot.Util.*;
 
 /**
  * The VM is configured to automatically run this class, and to call the
@@ -20,14 +22,17 @@ import frc.robot.Drive.*;
  */
 public class Robot extends TimedRobot {
   private CANSparkMax one; // counterclockwise
-  private CANSparkMax two; // counterclockwise
-  private CANSparkMax three; // clockwise
+  private CANSparkMax two; // issue
+  private CANSparkMax three; // counterclockwise
   private CANSparkMax four; // counterclockwise
   private CANSparkMax five; // counterclockwise
   private CANSparkMax six; // clockwise
-  private DriveSide right;
   private DriveSide left;
+  private DriveSide right;
+  private DriverControl dControl;
   private PS4Controller con;
+  private LogOcc logger = new LogOcc();
+  private EasyTimer timer = new EasyTimer();
 
   /**
    * This function is run when the robot is first started up and should be used
@@ -42,11 +47,9 @@ public class Robot extends TimedRobot {
     this.four = new CANSparkMax(6, CANSparkMaxLowLevel.MotorType.kBrushless);
     this.five = new CANSparkMax(7, CANSparkMaxLowLevel.MotorType.kBrushless);
     this.six = new CANSparkMax(4, CANSparkMaxLowLevel.MotorType.kBrushless);
-    // We need to invert one side of the drivetrain so that positive voltages
-    // result in both sides moving forward. Depending on how your robot's
-    // gearbox is constructed, you might have to invert the left side instead.
-    right = new DriveSide(one, two, three); 
-    left = new DriveSide(four, five, six);
+    left = new DriveSide(one, three, two);
+    right = new DriveSide(four, five, six);
+    this.dControl = new DriverControl(left, right, 4);
     con = new PS4Controller(0);
   }
 
@@ -70,9 +73,9 @@ public class Robot extends TimedRobot {
   /** This function is called periodically during teleoperated mode. */
   @Override
   public void teleopPeriodic() {
-    // three.setVoltage(2);
-    right.set_power(con.getRightY());
-    left.set_power(con.getLeftY());
+    System.out.println("deltaTime: " + timer.getTime());
+    dControl.tick(con.getLeftY(), con.getRightY());
+    
   }
 
   /** This function is called once each time the robot enters test mode. */
